@@ -2,7 +2,7 @@
   "site": { "title": "cv · qq", "subtitle": "UNIVERSE MEMORY" },
   "planets": [
     { "id": "acquaintance", "name": "相识", "owner": "cv",
-      "orbit": { "dist": 36, "speed": 0.55 },
+      "orbit": { "dist": 58, "speed": 0.55 },
       "appearance": { "color": "#b5a17a", "glow": "#e8d9b0", "size": 2.0, "ring": false },
       "cards": [
         { "type": "text", "title": "初次相识", "body": "故事的起点。", "date": "2023-05-20" }
@@ -21,7 +21,7 @@
         { "type": "text", "title": "在路上", "body": "我们看过的风景。", "date": "2023-08-12" }
       ] },
     { "id": "anniversary", "name": "纪念日", "owner": "qq",
-      "orbit": { "dist": 96, "speed": 0.26 },
+      "orbit": { "dist": 154, "speed": 0.26 },
       "appearance": { "color": "#ffd27a", "glow": "#ffe6b0", "size": 2.6, "ring": false },
       "cards": [
         { "type": "text", "title": "周年", "body": "值得铭记的一天。", "date": "2024-05-20" }
@@ -39,7 +39,7 @@
         { "type": "image", "src": "assets/sample/food-01.svg", "caption": "一起做饭", "date": "2024-11-11" }
       ] },
     { "id": "surprise", "name": "惊喜瞬间", "owner": "cv",
-      "orbit": { "dist": 182, "speed": 0.13 },
+      "orbit": { "dist": 292, "speed": 0.13 },
       "appearance": { "color": "#9ec6ff", "glow": "#cfe4ff", "size": 2.5, "ring": false },
       "cards": [
         { "type": "text", "title": "惊喜", "body": "意料之外的温柔。", "date": "2025-02-14" }
@@ -52,10 +52,10 @@
       ] }
   ],
   "points": [
-    { "id": "L1", "name": "L1 · 初遇点", "owner": "cv", "pos": [70, 18, -40], "linkPlanet": "acquaintance" },
-    { "id": "L2", "name": "L2 · 心动锚", "owner": "qq", "pos": [-60, 30, 50], "linkPlanet": "first-heart" },
-    { "id": "L4", "name": "L4 · 约定点", "owner": "cv", "pos": [120, -20, -90], "linkPlanet": "future" },
-    { "id": "L5", "name": "L5 · 回忆港", "owner": "qq", "pos": [-110, -25, 80], "linkPlanet": "daily" },
-    { "id": "perihelion", "name": "近日锚点", "owner": "cv", "pos": [40, 5, 30], "linkPlanet": "travel" }
+    { "id": "L1", "name": "L1 · 初遇点", "owner": "cv", "pos": [112, 29, -64], "linkPlanet": "acquaintance" },
+    { "id": "L2", "name": "L2 · 心动锚", "owner": "qq", "pos": [-96, 48, 80], "linkPlanet": "first-heart" },
+    { "id": "L4", "name": "L4 · 约定点", "owner": "cv", "pos": [192, -32, -144], "linkPlanet": "future" },
+    { "id": "L5", "name": "L5 · 回忆港", "owner": "qq", "pos": [-176, -40, 128], "linkPlanet": "daily" },
+    { "id": "perihelion", "name": "近日锚点", "owner": "cv", "pos": [64, 8, 48], "linkPlanet": "travel" }
   ]
 }

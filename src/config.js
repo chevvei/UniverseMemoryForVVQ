@@ -6,15 +6,15 @@ export const COLOR = {
 };
 
 export const WORLD = {
-  boundRadius: 320,
+  boundRadius: 700,
   sunRadius: 10,
   galaxyParticles: 22000
 };
 
 export const SHIP = {
-  maxSpeed: 1.4,
-  accel: 0.04,
-  turnRate: 0.025,
+  maxSpeed: 1.8,
+  accel: 0.05,
+  turnRate: 0.035,
   trailParticles: 240
 };
 

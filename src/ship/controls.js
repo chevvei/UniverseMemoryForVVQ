@@ -63,16 +63,25 @@ export function createShipControls(shipObject, domElement) {
     if (!enabled) return 0;
     const k = Math.min(2, dt * 60);
     let yaw = yawInput, pitch = pitchInput;
+    let roll = 0;
     if (keys['KeyA']) yaw += SHIP.turnRate * k;
     if (keys['KeyD']) yaw -= SHIP.turnRate * k;
     if (keys['ArrowUp']) pitch += SHIP.turnRate * k;
     if (keys['ArrowDown']) pitch -= SHIP.turnRate * k;
+    if (keys['KeyQ']) roll += SHIP.turnRate * k;
+    if (keys['KeyE']) roll -= SHIP.turnRate * k;
     yaw += -joyX * SHIP.turnRate * 1.5;
     pitch += -joyY * SHIP.turnRate * 1.5;
 
     const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
     const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
-    quat.multiply(qy).multiply(qx);
+    quat.premultiply(qy); // yaw 绕世界竖直轴 → 任意姿态都水平左右转
+    quat.multiply(qx);    // pitch 绕本地 X 轴 → 机头俯仰
+    if (roll !== 0) {
+      const qz = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), roll);
+      quat.multiply(qz); // roll 绕本地 Z 轴 → 机身滚转
+    }
+    quat.normalize();
     yawInput *= 0.6; pitchInput *= 0.6;
 
     let throttle = touchThrottle;
