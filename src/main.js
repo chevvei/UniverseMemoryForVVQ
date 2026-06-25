@@ -176,6 +176,7 @@ async function boot() {
     comets.update(t);
     planets.update(t);
     points.update(t);
+    blackhole.update(t);
     gallery.update(t, dt);
 
     const flying = rig.update(dt);
