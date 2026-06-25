@@ -13,6 +13,8 @@ import { createTwins } from './scene/twins.js';
 import { createComets } from './scene/comets.js';
 import { createPlanets } from './scene/planets.js';
 import { createPoints } from './scene/points.js';
+import { createBlackhole } from './scene/blackhole.js';
+import { createEarthMoon } from './scene/earth-moon.js';
 import { createTagLayer } from './ui/tags.js';
 import { loadShip } from './ship/ship.js';
 import { createShipControls } from './ship/controls.js';
@@ -53,8 +55,11 @@ async function boot() {
   const comets = createComets();
   const planets = createPlanets(data.planets);
   const points = createPoints(data.points);
+  const blackhole = createBlackhole();
+  const earthMoon = createEarthMoon();
 
   scene.add(starfield.object, galaxy.object, nebula.object, sun.object, twins.object, comets.object, planets.object, points.object);
+  scene.add(blackhole.object, earthMoon.object);
 
   const tags = createTagLayer(app);
   for (const m of planets.meshes) {
@@ -177,6 +182,7 @@ async function boot() {
     planets.update(t);
     points.update(t);
     blackhole.update(t);
+    earthMoon.update(t);
     gallery.update(t, dt);
 
     const flying = rig.update(dt);
