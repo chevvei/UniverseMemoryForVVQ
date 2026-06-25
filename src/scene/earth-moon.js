@@ -18,7 +18,8 @@ export function createEarthMoon({ position = new THREE.Vector3(-180, 40, 260), e
     new THREE.MeshStandardMaterial({
       map: tryLoad('earth_albedo.jpg'),
       normalMap: tryLoad('earth_normal.jpg'),
-      roughness: 0.85, metalness: 0.0
+      roughnessMap: tryLoad('earth_specular.jpg'),
+      roughness: 0.9, metalness: 0.05
     })
   );
   root.add(earth);
@@ -42,12 +43,13 @@ export function createEarthMoon({ position = new THREE.Vector3(-180, 40, 260), e
   const moonRadius = earthRadius * 0.27;
   const moonDist = earthRadius * 4.0;
   const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(moonRadius, 96, 96),
+    new THREE.SphereGeometry(moonRadius, 128, 128),
     new THREE.MeshStandardMaterial({
       map: tryLoad('moon_albedo.jpg'),
-      normalMap: tryLoad('moon_normal.jpg'),
+      bumpMap: tryLoad('moon_displace.jpg'),
+      bumpScale: moonRadius * 0.5,
       displacementMap: tryLoad('moon_displace.jpg'),
-      displacementScale: moonRadius * 0.06,
+      displacementScale: moonRadius * 0.04,
       roughness: 1.0, metalness: 0.0
     })
   );
