@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import './styles/main.css';
 import { loadMemories } from './data/loader.js';
 import { createRenderer } from './core/renderer.js';
@@ -18,8 +19,10 @@ import { createShipControls } from './ship/controls.js';
 import { createViewMode } from './ship/view-mode.js';
 import { createTrail } from './ship/trail.js';
 import { createGallery } from './ui/gallery.js';
+import { createUploadPanel } from './ui/upload-panel.js';
 import { createHud } from './ui/hud.js';
 import { createNav, createLoading } from './ui/nav.js';
+import { createBgm } from './audio/bgm.js';
 
 async function boot() {
   const app = document.getElementById('app');
@@ -29,6 +32,18 @@ async function boot() {
   const { scene, camera, composer, renderer } = createRenderer(app);
   const loop = createLoop(composer);
   const rig = createCameraRig(camera);
+
+  const orbit = new OrbitControls(camera, renderer.domElement);
+  orbit.enabled = false;
+  orbit.enablePan = false;
+  orbit.enableDamping = true;
+  orbit.dampingFactor = 0.08;
+  orbit.rotateSpeed = 0.5;
+  orbit.zoomSpeed = 0.6;
+  orbit.minDistance = 30;
+  orbit.maxDistance = 80;
+  orbit.minPolarAngle = Math.PI * 0.22;
+  orbit.maxPolarAngle = Math.PI * 0.62;
 
   const starfield = createStarfield();
   const galaxy = createGalaxy();
@@ -59,13 +74,27 @@ async function boot() {
   scene.add(trail.object);
 
   const gallery = createGallery(scene);
+  const uploadPanel = createUploadPanel(app);
   const hud = createHud(app, data.site);
   const nav = createNav(app);
+  const bgm = createBgm();
+  nav.muteBtn.addEventListener('click', () => {
+    const muted = bgm.toggleMute();
+    nav.muteBtn.textContent = muted ? '♪̸' : '♪';
+  });
   nav.viewBtn.addEventListener('click', () => {
     const m = viewMode.toggle();
     hud.setTarget(m === 'cockpit' ? '— 舱内视角 —' : '— 自由航行 —');
   });
   nav.hudBtn.addEventListener('click', () => hud.toggleStyle());
+  nav.uploadBtn.addEventListener('click', () => {
+    if (!inPlanet) return;
+    uploadPanel.open((card) => {
+      const idx = gallery.addCard(card);
+      gallery.focusCard(idx);
+      nav.setHint('已加入这颗星球 ✓ 点击卡片放大');
+    });
+  });
   controls.bindJoystick(nav.joy, nav.knob);
   controls.bindThrottle(nav.throttle);
 
@@ -90,12 +119,14 @@ async function boot() {
     pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(pickList(), false);
-    if (!hits.length) return;
-    const obj = hits[0].object;
     if (inPlanet) {
+      if (!hits.length) { gallery.resume(); return; }
+      const obj = hits[0].object;
       if (obj.userData.cardIndex !== undefined) gallery.focusCard(obj.userData.cardIndex);
       return;
     }
+    if (!hits.length) return;
+    const obj = hits[0].object;
     let planetId = obj.userData.planetId || obj.userData.linkPlanet;
     if (!planetId) return;
     enterPlanet(planetId);
@@ -111,11 +142,14 @@ async function boot() {
     const center = new THREE.Vector3();
     entry.planet.getWorldPosition(center);
     hud.setTarget(`→ ${entry.data.name}`);
-    rig.flyTo(center, 34, () => {
+    rig.flyTo(center, 48, () => {
       gallery.open(entry.data, center);
       inPlanet = true;
+      orbit.target.copy(center);
+      orbit.enabled = true;
+      orbit.update();
       nav.setInPlanet(true);
-      nav.setHint('点击卡片放大 · 返回宇宙退出');
+      nav.setHint('拖动转视角 · 点击卡片放大 · 返回宇宙退出');
       hud.setTarget(`◉ ${entry.data.name} · ${entry.data.owner}`);
     }, 1.8);
   }
@@ -124,6 +158,7 @@ async function boot() {
     if (!inPlanet || rig.isActive()) return;
     gallery.close();
     inPlanet = false;
+    orbit.enabled = false;
     nav.setInPlanet(false);
     nav.setHint('点击星球进入记忆');
     rig.returnTo(savedCam.pos, savedCam.quat, () => {
@@ -149,6 +184,7 @@ async function boot() {
       throttle = controls.update(dt);
       viewMode.update(dt);
     }
+    if (!flying && inPlanet) orbit.update();
     shipApi.update(t, throttle);
     trail.update(dt, throttle);
     hud.setSpeed(controls.velocity.length());
@@ -156,7 +192,10 @@ async function boot() {
   });
 
   loop.start();
-  loading.hide();
+  loading.ready();
+  loading.onEnter(() => {
+    bgm.play();
+  });
 }
 
 boot();

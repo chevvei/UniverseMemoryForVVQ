@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { arcPositions } from './gallery-layout.js';
+import { ringPositions } from './gallery-layout.js';
 import { easeInOutCubic } from '../core/easing.js';
 
 const loader = new THREE.TextureLoader();
@@ -44,6 +44,11 @@ export function createGallery(scene) {
   const cards = [];
   let opening = false, animT = 0, isOpen = false;
   const videoEls = [];
+  let spin = 0;
+  let paused = false;
+  const RING_RADIUS = 26;
+  const SPIN_SPEED = 0.105;
+  const FRONT_ANGLE = 0;
 
   function clear() {
     for (const c of cards) {
@@ -56,42 +61,80 @@ export function createGallery(scene) {
     videoEls.length = 0;
   }
 
+  let owner = 'cv';
+
+  function makeTexture(card) {
+    if (card.type === 'image') return loader.load(card.src);
+    if (card.type === 'video') {
+      const v = document.createElement('video');
+      v.src = card.src; v.loop = true; v.muted = true; v.playsInline = true; v.autoplay = true;
+      v.play().catch(() => {});
+      videoEls.push(v);
+      return new THREE.VideoTexture(v);
+    }
+    return textCard(card, owner);
+  }
+
+  function layout() {
+    const positions = ringPositions(cards.length, RING_RADIUS);
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i];
+      const p = positions[i];
+      c.mesh.position.set(p.x, 0, p.z);
+      c.mesh.lookAt(0, 0, 0);
+      c.mesh.userData.cardIndex = i;
+      c.baseAngle = p.angle;
+      c.base.copy(c.mesh.position);
+    }
+  }
+
+  function addCard(card) {
+    const tex = makeTexture(card);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(11, 7.3), mat);
+    mesh.userData.baseScale = 1;
+    group.add(mesh);
+    cards.push({ mesh, base: new THREE.Vector3(), baseAngle: 0, focus: false });
+    layout();
+    return cards.length - 1;
+  }
+
   function open(planetData, centerWorld) {
     clear();
+    owner = planetData.owner;
     group.position.copy(centerWorld);
-    const items = planetData.cards;
-    const positions = arcPositions(items.length, 26, Math.PI * 0.9);
-    for (let i = 0; i < items.length; i++) {
-      const card = items[i];
-      let tex;
-      if (card.type === 'text') {
-        tex = textCard(card, planetData.owner);
-      } else if (card.type === 'image') {
-        tex = loader.load(card.src);
-      } else if (card.type === 'video') {
-        const v = document.createElement('video');
-        v.src = card.src; v.loop = true; v.muted = true; v.playsInline = true; v.autoplay = true;
-        v.play().catch(() => {});
-        videoEls.push(v);
-        tex = new THREE.VideoTexture(v);
-      }
-      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(11, 7.3), mat);
-      const p = positions[i];
-      mesh.position.set(p.x, p.y + Math.sin(i) * 1.5, p.z);
-      mesh.lookAt(0, mesh.position.y, 0);
-      mesh.userData.cardIndex = i;
-      mesh.userData.baseScale = 1;
-      group.add(mesh);
-      cards.push({ mesh, base: mesh.position.clone(), focus: false });
-    }
+    for (const card of planetData.cards) addCard(card);
+    group.scale.setScalar(0.2);
+    group.rotation.y = 0;
+    spin = 0; paused = false;
     group.visible = true;
     opening = true; animT = 0; isOpen = true;
   }
 
+  function frontIndex() {
+    if (!cards.length) return -1;
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i < cards.length; i++) {
+      let a = (cards[i].baseAngle + spin) % (Math.PI * 2);
+      let d = Math.abs(((a - FRONT_ANGLE + Math.PI) % (Math.PI * 2)) - Math.PI);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
   function focusCard(index) {
+    const c = cards[index];
+    if (index < 0 || !c) return null;
+    paused = true;
+    spin = FRONT_ANGLE - c.baseAngle;
+    for (const cc of cards) cc.focus = false;
+    c.focus = true;
+    return { index };
+  }
+
+  function resume() {
+    paused = false;
     for (const c of cards) c.focus = false;
-    if (index >= 0 && cards[index]) cards[index].focus = true;
   }
 
   function close() {
@@ -108,13 +151,25 @@ export function createGallery(scene) {
       group.scale.setScalar(0.2 + e * 0.8);
       if (animT >= 1) opening = false;
     }
-    for (const c of cards) {
-      const target = c.focus ? 1.6 : 1;
+    if (!paused && !opening) spin += SPIN_SPEED * dt;
+    let r = group.rotation.y;
+    let diff = spin - r;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    group.rotation.y = r + diff * Math.min(1, dt * 5);
+
+    const front = paused ? cards.findIndex((c) => c.focus) : frontIndex();
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i];
+      const highlight = i === front;
+      const target = highlight ? (paused ? 1.7 : 1.25) : 1;
       const s = c.mesh.scale.x + (target - c.mesh.scale.x) * Math.min(1, dt * 6);
       c.mesh.scale.set(s, s, s);
-      c.mesh.position.y = c.base.y + Math.sin(t * 0.8 + c.base.x) * 0.4;
+      const targetOp = highlight ? 1 : 0.45;
+      const m = c.mesh.material;
+      m.opacity = m.opacity + (targetOp - m.opacity) * Math.min(1, dt * 6);
+      c.mesh.position.y = c.base.y + Math.sin(t * 0.6 + c.baseAngle) * 0.5;
     }
   }
 
-  return { open, close, focusCard, getMeshes, update, isOpen: () => isOpen };
+  return { open, close, focusCard, resume, getMeshes, addCard, update, isOpen: () => isOpen };
 }
