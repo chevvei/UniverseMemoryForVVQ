@@ -10,16 +10,16 @@ export function createSun() {
   );
   g.add(core);
 
-  const glow = radialSprite(COLOR.SUN, WORLD.sunRadius * 9, 0.7);
+  const glow = radialSprite(COLOR.SUN, WORLD.sunRadius * 3.2, 0.45);
   g.add(glow);
-  const glow2 = radialSprite(0xfff0c4, WORLD.sunRadius * 4.5, 0.9);
+  const glow2 = radialSprite(0xfff0c4, WORLD.sunRadius * 2.4, 0.6);
   g.add(glow2);
 
   const rays = new THREE.Group();
   const rayCount = 14;
   for (let i = 0; i < rayCount; i++) {
-    const sp = radialSprite(0xfff3cc, WORLD.sunRadius * 3.4, 0.18);
-    sp.scale.y *= 7;
+    const sp = radialSprite(0xfff3cc, WORLD.sunRadius * 2.6, 0.1);
+    sp.scale.y *= 4;
     sp.material.rotation = (i / rayCount) * Math.PI * 2;
     rays.add(sp);
   }
@@ -32,7 +32,7 @@ export function createSun() {
   function update(t) {
     rays.rotation.z = t * 0.05;
     const pulse = 1 + Math.sin(t * 1.4) * 0.04;
-    glow.scale.set(WORLD.sunRadius * 9 * pulse, WORLD.sunRadius * 9 * pulse, 1);
+    glow.scale.set(WORLD.sunRadius * 3.2 * pulse, WORLD.sunRadius * 3.2 * pulse, 1);
   }
   return { object: g, update };
 }
