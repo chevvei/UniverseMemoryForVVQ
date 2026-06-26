@@ -14,7 +14,7 @@ export function createEarthMoon({ position = new THREE.Vector3(-180, 40, 260), e
 
   // 地球
   const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(earthRadius, 96, 96),
+    new THREE.SphereGeometry(earthRadius, 48, 48),
     new THREE.MeshStandardMaterial({
       map: tryLoad('earth_albedo.jpg'),
       normalMap: tryLoad('earth_normal.jpg'),
