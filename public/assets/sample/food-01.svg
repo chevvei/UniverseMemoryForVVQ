@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5a2b3a"/>
+      <stop offset="1" stop-color="#ffd27a"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#g)"/>
+  <circle cx="220" cy="220" r="60" fill="#ff9ec4" opacity="0.85"/>
+  <circle cx="380" cy="190" r="48" fill="#ffe6b0" opacity="0.85"/>
+  <text x="300" y="380" font-size="22" fill="#fff3e0" text-anchor="middle" font-family="sans-serif">美食记录 · FOOD</text>
+</svg>

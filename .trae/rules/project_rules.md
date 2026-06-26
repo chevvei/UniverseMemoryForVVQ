@@ -14,14 +14,14 @@
 架构与失配处理见 [_TRAE_ADAPTER.md](../skills/_TRAE_ADAPTER.md) §0 三层架构。
 
 ## 3. 技术栈
-- 语言：__TODO__
-- 框架：__TODO__
-- 构建：`__TODO__`
-- 运行：`__TODO__`
+- 语言：JavaScript (ES Module)
+- 框架：Three.js 0.160 + Vite 5
+- 构建：`npm run build`
+- 运行：`npm run dev`（端口 8099）
 
 ## 4. 代码风格
-- Formatter：__TODO__
-- Linter：__TODO__
+- Formatter：无强制（保持现有风格）
+- Linter：ESLint 9 flat config（`npm run lint`）
 - 严禁提交 secrets/keys
 
 ## 5. Git 提交格式
@@ -30,5 +30,5 @@
 ```
 
 ## 6. 测试
-- 框架：__TODO__
-- 运行：`__TODO__`
+- 框架：Vitest
+- 运行：`npm test`
