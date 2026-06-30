@@ -15,6 +15,9 @@ import { createPlanets } from './scene/planets.js';
 import { createPoints } from './scene/points.js';
 import { createBlackhole } from './scene/blackhole.js';
 import { createEarthMoon } from './scene/earth-moon.js';
+import { createMeteors } from './scene/meteors.js';
+import { createCrystalBurst } from './scene/crystal-burst.js';
+import { createWarpEffect } from './core/warp-effect.js';
 import { createTagLayer } from './ui/tags.js';
 import { loadShip } from './ship/ship.js';
 import { createShipControls } from './ship/controls.js';
@@ -57,9 +60,12 @@ async function boot() {
   const points = createPoints(data.points);
   const blackhole = createBlackhole();
   const earthMoon = createEarthMoon();
+  const meteors = createMeteors();
+  const crystalBurst = createCrystalBurst();
+  const warp = createWarpEffect();
 
   scene.add(starfield.object, galaxy.object, nebula.object, sun.object, twins.object, comets.object, planets.object, points.object);
-  scene.add(blackhole.object, earthMoon.object);
+  scene.add(blackhole.object, earthMoon.object, meteors.object, crystalBurst.object, warp.object);
 
   const tags = createTagLayer(app);
   for (const m of planets.meshes) {
@@ -148,6 +154,7 @@ async function boot() {
     entry.planet.getWorldPosition(center);
     hud.setTarget(`→ ${entry.data.name}`);
     rig.flyTo(center, 48, () => {
+      crystalBurst.burst(center);
       gallery.open(entry.data, center);
       inPlanet = true;
       orbit.target.copy(center);
@@ -183,6 +190,9 @@ async function boot() {
     points.update(t);
     blackhole.update(t);
     earthMoon.update(t);
+    meteors.update(t, dt);
+    crystalBurst.update(t, dt);
+    warp.update(t);
     gallery.update(t, dt);
 
     const flying = rig.update(dt);
@@ -194,7 +204,9 @@ async function boot() {
     if (!flying && inPlanet) orbit.update();
     shipApi.update(t, throttle);
     trail.update(dt, throttle);
-    hud.setSpeed(controls.velocity.length());
+    const spd = controls.velocity.length();
+    hud.setSpeed(spd);
+    warp.setWarp(spd, 1.8);
     tags.update(camera);
   });
 

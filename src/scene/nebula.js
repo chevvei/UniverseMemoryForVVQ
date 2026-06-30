@@ -1,25 +1,56 @@
 import * as THREE from 'three';
-import { radialSprite } from './_helpers.js';
+import { COLOR } from '../config.js';
 
-const COLORS = [0x3a2b6e, 0x5a2b55, 0x21406e, 0x402b6b, 0x5a3b2b];
-
+// 双色程序化星云：蓝(cv) + 粉(qq) 粒子云 + 柔化 shader
 export function createNebula() {
   const g = new THREE.Group();
-  for (let i = 0; i < 14; i++) {
-    const color = COLORS[i % COLORS.length];
-    const sp = radialSprite(color, 200 + Math.random() * 260, 0.16 + Math.random() * 0.12);
-    const r = 500 + Math.random() * 700;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    sp.position.set(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.cos(phi) * 0.5,
-      r * Math.sin(phi) * Math.sin(theta)
-    );
-    g.add(sp);
+  const clusters = [
+    { center: new THREE.Vector3(380, 30, -200), color: new THREE.Color(COLOR.ICE), count: 800, radius: 140 },
+    { center: new THREE.Vector3(-300, -20, 320), color: new THREE.Color(COLOR.ROSE), count: 800, radius: 130 },
+    { center: new THREE.Vector3(-150, 80, -450), color: new THREE.Color(COLOR.SUN), count: 500, radius: 100 },
+  ];
+
+  for (const c of clusters) {
+    const pos = new Float32Array(c.count * 3);
+    const aSize = new Float32Array(c.count);
+    for (let i = 0; i < c.count; i++) {
+      const r = c.radius * Math.cbrt(Math.random());
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = c.center.x + r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = c.center.y + r * Math.sin(phi) * Math.sin(theta) * 0.6;
+      pos[i * 3 + 2] = c.center.z + r * Math.cos(phi);
+      aSize[i] = 0.5 + Math.random() * 2.5;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(aSize, 1));
+    const mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { uColor: { value: c.color }, uTime: { value: 0 } },
+      vertexShader: `
+        attribute float aSize; uniform float uTime; varying float vAlpha;
+        void main(){
+          vAlpha = 0.4 + 0.3 * sin(uTime * 0.5 + aSize * 3.0);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = aSize * (300.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        varying float vAlpha; uniform vec3 uColor;
+        void main(){
+          vec2 c = gl_PointCoord - 0.5; float d = length(c);
+          if(d > 0.5) discard;
+          float a = vAlpha * smoothstep(0.5, 0.0, d);
+          gl_FragColor = vec4(uColor, a);
+        }`
+    });
+    const points = new THREE.Points(geo, mat);
+    g.add(points);
   }
   function update(t) {
-    g.rotation.y = t * 0.006;
+    g.rotation.y = t * 0.004;
+    for (const child of g.children) child.material.uniforms.uTime.value = t;
   }
   return { object: g, update };
 }

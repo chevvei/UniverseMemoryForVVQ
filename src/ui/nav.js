@@ -54,7 +54,7 @@ export function createLoading(container) {
   let entered = false;
 
   function ready() {
-    sub.textContent = '点击进入，开启这段旅程 ♪';
+    sub.textContent = '星系已点亮，开启这段旅程 ♪';
     enterBtn.hidden = false;
   }
   function onEnter(cb) {

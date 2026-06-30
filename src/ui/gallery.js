@@ -9,22 +9,67 @@ function textCard(card, owner) {
   cv.width = 512; cv.height = 340;
   const ctx = cv.getContext('2d');
   const accent = owner === 'cv' ? '#7fd4ff' : '#ff9ec4';
-  ctx.fillStyle = 'rgba(8,14,30,0.92)';
-  ctx.fillRect(0, 0, 512, 340);
-  ctx.strokeStyle = accent; ctx.lineWidth = 3;
-  ctx.strokeRect(8, 8, 496, 324);
+  const accent2 = owner === 'cv' ? '#ff9ec4' : '#7fd4ff';
+  // 玻璃拟态背景：圆角 + 渐变 + 高光
+  const grad = ctx.createLinearGradient(0, 0, 512, 340);
+  grad.addColorStop(0, 'rgba(12,20,42,0.88)');
+  grad.addColorStop(0.5, 'rgba(20,28,56,0.92)');
+  grad.addColorStop(1, 'rgba(10,16,36,0.88)');
+  ctx.fillStyle = grad;
+  roundRect(ctx, 0, 0, 512, 340, 24);
+  ctx.fill();
+  // 玻璃高光（顶部）
+  const gloss = ctx.createLinearGradient(0, 0, 0, 120);
+  gloss.addColorStop(0, 'rgba(255,255,255,0.08)');
+  gloss.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gloss;
+  roundRect(ctx, 0, 0, 512, 340, 24);
+  ctx.fill();
+  // 双色流光描边
+  const borderGrad = ctx.createLinearGradient(0, 0, 512, 340);
+  borderGrad.addColorStop(0, accent);
+  borderGrad.addColorStop(0.5, accent2);
+  borderGrad.addColorStop(1, accent);
+  ctx.strokeStyle = borderGrad; ctx.lineWidth = 2.5;
+  roundRect(ctx, 4, 4, 504, 332, 22);
+  ctx.stroke();
+  // 内发光
+  ctx.shadowColor = accent; ctx.shadowBlur = 16;
+  ctx.strokeStyle = accent; ctx.lineWidth = 1;
+  roundRect(ctx, 8, 8, 496, 324, 20);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // 标题
   ctx.fillStyle = accent;
   ctx.font = '600 34px "PingFang SC", sans-serif';
   ctx.fillText(card.title || '', 36, 80);
+  // 正文
   ctx.fillStyle = '#dbeeff';
   ctx.font = '24px "PingFang SC", sans-serif';
   wrap(ctx, card.body || '', 36, 140, 440, 34);
+  // 日期
   if (card.date) {
     ctx.fillStyle = 'rgba(190,210,255,0.6)';
-    ctx.font = '20px monospace';
+    ctx.font = '20px ui-monospace, monospace';
     ctx.fillText(card.date, 36, 300);
   }
+  // 底部双色装饰线
+  const lineGrad = ctx.createLinearGradient(36, 0, 476, 0);
+  lineGrad.addColorStop(0, accent);
+  lineGrad.addColorStop(1, accent2);
+  ctx.fillStyle = lineGrad;
+  ctx.fillRect(36, 318, 440, 2);
   return new THREE.CanvasTexture(cv);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 function wrap(ctx, text, x, y, maxW, lh) {
@@ -161,13 +206,13 @@ export function createGallery(scene) {
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i];
       const highlight = i === front;
-      const target = highlight ? (paused ? 1.7 : 1.25) : 1;
-      const s = c.mesh.scale.x + (target - c.mesh.scale.x) * Math.min(1, dt * 6);
+      const focusBoost = highlight && paused ? 1.8 : (highlight ? 1.25 : 1);
+      const s = c.mesh.scale.x + (focusBoost - c.mesh.scale.x) * Math.min(1, dt * 6);
       c.mesh.scale.set(s, s, s);
-      const targetOp = highlight ? 1 : 0.45;
+      const targetOp = highlight ? 1 : (paused ? 0.15 : 0.45);
       const m = c.mesh.material;
       m.opacity = m.opacity + (targetOp - m.opacity) * Math.min(1, dt * 6);
-      c.mesh.position.y = c.base.y + Math.sin(t * 0.6 + c.baseAngle) * 0.5;
+      c.mesh.position.y = c.base.y + Math.sin(t * 0.6 + c.baseAngle) * (highlight ? 0.8 : 0.5);
     }
   }
 

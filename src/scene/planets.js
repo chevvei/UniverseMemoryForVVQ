@@ -36,6 +36,22 @@ export function createPlanets(planetsData) {
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI / 2.3;
       planet.add(ring);
+      // 光环粒子
+      const pCount = 120;
+      const pPos = new Float32Array(pCount * 3);
+      for (let i = 0; i < pCount; i++) {
+        const r = a.size * (1.7 + Math.random() * 1.2);
+        const ang = Math.random() * Math.PI * 2;
+        pPos[i * 3] = Math.cos(ang) * r;
+        pPos[i * 3 + 1] = (Math.random() - 0.5) * 0.3;
+        pPos[i * 3 + 2] = Math.sin(ang) * r;
+      }
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+      const pMat = new THREE.PointsMaterial({ color: a.glow, size: 0.6, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false });
+      const ringParticles = new THREE.Points(pGeo, pMat);
+      ringParticles.rotation.x = Math.PI / 2.3;
+      planet.add(ringParticles);
     }
 
     body.userData.planetId = p.id;

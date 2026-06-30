@@ -36,11 +36,22 @@ canvas { display: block; }
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
+/* 全息扫描线 overlay */
+.hud::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(120,200,255,0.025) 3px, rgba(120,200,255,0.025) 4px);
+  pointer-events: none; mix-blend-mode: screen;
+}
 .hud-soft .hud-frame {
   position: absolute; inset: 18px;
   border: 1px solid rgba(160, 200, 255, 0.12);
   border-radius: 28px;
   box-shadow: inset 0 0 80px rgba(120, 170, 255, 0.06);
+  animation: hud-breathe 4s ease-in-out infinite;
+}
+@keyframes hud-breathe {
+  0%, 100% { box-shadow: inset 0 0 80px rgba(120, 170, 255, 0.06); border-color: rgba(160, 200, 255, 0.12); }
+  50% { box-shadow: inset 0 0 100px rgba(255, 158, 196, 0.08); border-color: rgba(255, 190, 220, 0.18); }
 }
 .hud-soft .hud-target {
   position: absolute; top: calc(28px + env(safe-area-inset-top)); left: 50%;

@@ -19,6 +19,13 @@ function buildExhaust() {
 }
 
 function attachUpdate(ship, exhaust) {
+  // 能量护盾：淡蓝半透明球壳，加速时脉冲
+  const shield = new THREE.Mesh(
+    new THREE.SphereGeometry(3.2, 24, 24),
+    new THREE.MeshBasicMaterial({ color: COLOR.ICE, transparent: true, opacity: 0, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  ship.add(shield);
+  let shieldOp = 0;
   function update(t, throttle = 0) {
     const base = 0.5 + throttle * 1.4;
     const flick = 0.85 + Math.sin(t * 30) * 0.15;
@@ -27,6 +34,11 @@ function attachUpdate(ship, exhaust) {
       f.scale.set(s * 1.6, s * 1.6, 1);
       f.material.opacity = 0.5 + throttle * 0.4;
     });
+    // 护盾脉冲
+    const targetOp = throttle > 0.3 ? 0.12 + throttle * 0.15 : 0;
+    shieldOp += (targetOp - shieldOp) * 0.06;
+    shield.material.opacity = shieldOp + Math.sin(t * 4) * 0.03 * shieldOp;
+    shield.scale.setScalar(1 + Math.sin(t * 3) * 0.02);
   }
   return { object: ship, update };
 }
